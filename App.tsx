@@ -9,7 +9,6 @@
 import React, {useEffect, useState} from 'react';
 import type {ReactNode as Node} from 'react';
 import {
-  useColorScheme,
   View,
   Text,
   Image,
@@ -17,15 +16,14 @@ import {
   Dimensions,
   TouchableHighlight,
   Button,
+  TextInput,
 } from 'react-native';
 
 import KeepAwake from 'react-native-keep-awake';
 const {width} = Dimensions.get('window');
-import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
+  const [keywords, setKeywords] = useState('cats');
   const [message, setMessage] = useState('state...');
   const [showOverlay, setShowOverlay] = useState(true);
   const [uri, setUri] = useState(
@@ -34,12 +32,15 @@ const App: () => Node = () => {
   const [uris, setUris] = useState([uri]);
 
   const search = () => {
-    fetch('https://images.search.yahoo.com/search/images?p=cats')
+    fetch(
+      'https://images.search.yahoo.com/search/images?p=' +
+        keywords.replace(/ /g, '+'),
+    )
       .then(res => {
         res.text().then(text => {
           const r = [...text.matchAll(/"iurl":"([^"]+)"/g)];
           const i = r.map(x => x[1].replace(/\\\//g, '/'));
-          setMessage('length: ' + i.length);
+          setMessage('Results: ' + i.length);
           setUri(i[0]);
           setUris(i);
         });
@@ -53,37 +54,36 @@ const App: () => Node = () => {
         setUris([...uris.slice(1), uris[0]]);
         setUri(uris[0]);
         setMessage(uris[0]);
-        Image.prefetch(uris[1]).then(() => {});
+        Image.prefetch(uris[1])
+          .then(() => {})
+          .catch(() => {});
       }
     }, 8000);
     return () => clearInterval(interval);
   });
 
   return (
-    <View
-      style={{
-        backgroundColor: isDarkMode ? Colors.black : Colors.white,
-        flex: 1,
-      }}>
+    <View style={[styles.flex1]}>
       <TouchableHighlight
         activeOpacity={0.6}
         underlayColor="#DDDDDD"
         onPress={() => setShowOverlay(!showOverlay)}
-        style={{flex: 1}}>
-        <Image
-          style={{
-            resizeMode: 'cover',
-            flex: 1,
-          }}
-          source={{uri}}
-        />
+        style={[styles.flex1]}>
+        <Image style={[styles.image]} source={{uri}} />
       </TouchableHighlight>
 
       {showOverlay && (
-        <View style={[styles.overlay, {height: 360}]}>
-          <Text>Hello right here!</Text>
-          <Button title={'Hello'} onPress={search} />
-          <Text>{message}</Text>
+        <View style={[styles.overlay]}>
+          <Text style={[styles.lighttext]}>Enter keyword</Text>
+          <View style={[styles.horizontal]}>
+            <TextInput
+              onChangeText={setKeywords}
+              style={[styles.lighttext, styles.flex1]}
+              value={keywords}
+            />
+            <Button title={' GO '} onPress={search} />
+          </View>
+          <Text style={[styles.lighttext]}>{message}</Text>
         </View>
       )}
 
@@ -93,17 +93,18 @@ const App: () => Node = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  lighttext: {
+    color: '#a9a9a9',
+  },
+  image: {
+    resizeMode: 'cover',
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  horizontal: {
+    flexDirection: 'row',
+    flex: 1,
   },
+  flex1: {flex: 1},
   // Flex to fill, position absolute,
   // Fixed left/top, and the width set to the window width
   overlay: {
