@@ -5,6 +5,19 @@
  * @format
  * @flow strict-local
  */
+ 
+/*
+ * to build...
+ *
+ *   cd android
+ *   ANDROID_SDK_ROOT=~/Android/Sdk ./gradlew assembleRelease
+ *
+ *  OR
+ *
+ *   ANDROID_SDK_ROOT=~/Android/Sdk npm run android
+ *
+ * File at: android/app/build/outputs/apk/release
+ */
 
 import React, {useEffect, useState} from 'react';
 import type {ReactNode as Node} from 'react';
@@ -112,8 +125,8 @@ const App: () => Node = () => {
         console.log(uris.length);
         p();
       },
-      () => p,
-    ).catch(() => p);
+      () => p(),
+    ).catch(() => p());
   };
 
   return (
